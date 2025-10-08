@@ -52,6 +52,9 @@ PepsiCo's logistics operations require an intelligent system that:
 - Updates delivery records with calculated financial impact in structured JSON format
 - Progresses workflow status to "calculated" to trigger Agent 2
 
+  <img width="1914" height="957" alt="Screen Shot 2025-10-07 at 4 28 31 PM" src="https://github.com/user-attachments/assets/df83bf9c-6e02-4f3f-987c-fd4ad5424c76" />
+
+
 **Agent 2: Route Decision Agent**
 
 *Purpose:* Selects optimal routes and coordinates external execution
@@ -71,10 +74,11 @@ PepsiCo's logistics operations require an intelligent system that:
   - Penalty < $200: Priority 3 (Moderate)
 - Triggers external execution workflow via webhook to n8n
 - Updates workflow status to "approved" for tracking
+<img width="1915" height="947" alt="Screen Shot 2025-10-07 at 4 43 30 PM" src="https://github.com/user-attachments/assets/c02b2d8d-83f9-4144-8017-1604772df343" />
 
 **Architectural Decision: Script Tools vs Record Operations**
 
-During implementation, we encountered challenges with the built-in Update Record operation tools not properly matching records due to data type mismatches between Integer fields and String values passed by AI agents. We resolved this by implementing custom JavaScript script tools using GlideRecord API, which provides:
+During implementation, I encountered challenges with the built-in Update Record operation tools not properly matching records due to data type mismatches between Integer fields and String values passed by AI agents. We resolved this by implementing custom JavaScript script tools using GlideRecord API, which provides:
 - Automatic type conversion handling
 - More reliable record matching
 - Enhanced error logging for troubleshooting
@@ -96,6 +100,7 @@ The n8n AI agent receives webhook payloads containing routing decisions (route_i
 2. Execute route with logistics provider via Logistics MCP
 3. Send customer notifications via Retail MCP
 4. Update ServiceNow execution status via ServiceNow MCP
+<img width="1387" height="476" alt="Screen Shot 2025-10-07 at 11 00 18 PM" src="https://github.com/user-attachments/assets/8d481580-1cd9-4ca5-a892-140f6e20fbd5" />
 
 **Integration Pattern:** Event-driven architecture with webhook triggers enabling real-time coordination between ServiceNow's decision-making layer and n8n's execution layer.
 
@@ -127,11 +132,14 @@ The n8n AI agent receives webhook payloads containing routing decisions (route_i
 - Tool discovery capabilities for dynamic integration
 - Built-in authentication mechanisms
 
+  
+<img width="1387" height="476" alt="Screen Shot 2025-10-07 at 11 00 18 PM" src="https://github.com/user-attachments/assets/7cb96e47-0a57-4146-ae21-99a2853b6b34" />
+
 ---
 
 ## Architecture Diagram
 
-![System Architecture](Diagram.png)
+
 
 ### Complete Workflow:
 
