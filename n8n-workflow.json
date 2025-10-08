@@ -1,1 +1,382 @@
-
+{
+  "name": "PepsiCo Supply Chain Integration",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pepsico-routing",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2240,
+        -208
+      ],
+      "id": "cb7b4e27-98ac-43d0-9bfd-97f0b08f6c1d",
+      "name": "Webhook",
+      "webhookId": "2766468a-4c54-4d6f-aebd-b1ba7e2e99ab"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are coordinating external system integration for PepsiCo supply chain operations.\n\nCRITICAL: You will receive webhook data containing route_id, truck_id, and chosen_option. You MUST extract these EXACT values from the input and use them in all tool calls.\n\nInput data structure:\n- route_id: string (example: \"741379\")\n- truck_id: string (example: \"39531\")\n- chosen_option: object with option_id, route_number, distance_miles, eta_minutes\n\nYour tasks:\n1. EXTRACT the actual route_id value from the webhook input (NOT a placeholder!)\n2. EXTRACT the actual truck_id value from the webhook input\n3. EXTRACT the actual chosen_option object from the webhook input\n4. Call update_execution_status tool with:\n   - route_id: the ACTUAL route_id you extracted (must be the real value like \"741379\")\n   - status: \"dispatched\"\n\nDO NOT use placeholders. Use the real values from the input data.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -1968,
+        -192
+      ],
+      "id": "08e9d966-004e-4ce5-bc6a-d9da27ecb1c8",
+      "name": "AI Agent - Route Coordinator "
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"success\",\n  \"message\": \"Routing coordination complete\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -512,
+        144
+      ],
+      "id": "7669625c-f29b-4ac0-b14e-8b64f0291728",
+      "name": "Webhook Response"
+    },
+    {
+      "parameters": {
+        "model": "amazon.nova-micro-v1:0",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAwsBedrock",
+      "typeVersion": 1.1,
+      "position": [
+        -2048,
+        48
+      ],
+      "id": "9b071b56-e234-4bed-8f22-f22facd2a208",
+      "name": "AWS Bedrock Chat Model",
+      "credentials": {
+        "aws": {
+          "id": "MvgaCvfr158pBzWU",
+          "name": "AWS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://34.197.44.143:8001/mcp",
+        "serverTransport": "httpStreamable",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.1,
+      "position": [
+        -1232,
+        320
+      ],
+      "id": "509ce292-2b4f-4bae-989f-0a64bb4622a4",
+      "name": "Logistics MCP Client"
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://34.197.44.143:8000/mcp",
+        "serverTransport": "httpStreamable",
+        "authentication": "bearerAuth",
+        "include": "selected",
+        "includeTools": [
+          "update_execution_status"
+        ],
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.1,
+      "position": [
+        -976,
+        256
+      ],
+      "id": "19bd71e5-d104-4aee-a14d-0ed670fda2ce",
+      "name": "ServiceNow MCP Client",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "NPZFufAEgWG0lL9E",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://34.197.44.143:8002/mcp",
+        "serverTransport": "httpStreamable",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.1,
+      "position": [
+        -1088,
+        304
+      ],
+      "id": "787307ea-7eea-46e1-bbf5-4caa47f16bc4",
+      "name": "Retail MCP Client"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://34.197.44.143:8001/mcp",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json, text/event-stream"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "=={{ {\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"execute_route\",\n  \"params\": {\n    \"route_id\": $json.route_id,\n    \"truck_id\": $json.truck_id,\n    \"chosen_option\": $json.chosen_option\n  },\n  \"id\": \"req-1\"\n} }}",
+        "options": {
+          "allowUnauthorizedCerts": false,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        }
+      },
+      "name": "Logistics MCP Client1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -1648,
+        -192
+      ],
+      "id": "c543bc30-9e73-4d99-b4d0-6bcf55bf9cb6"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://34.197.44.143:8000/mcp",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json, text/event-stream"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"update_execution_status\",\n  \"params\": {\n    \"route_id\": \"={{ $input.first().json.route_id }}\",\n    \"status\": \"dispatched\"\n  },\n  \"id\": \"req-servicenow-1\"\n}",
+        "options": {
+          "allowUnauthorizedCerts": false,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        }
+      },
+      "name": "ServiceNow MCP Client1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -1232,
+        -192
+      ],
+      "id": "687b1b69-3445-42d8-abf6-9b949f05468f",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "vDvPlKOuaqVEPxGa",
+          "name": "ServiceNow MCP - Authorization"
+        },
+        "httpBearerAuth": {
+          "id": "NPZFufAEgWG0lL9E",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://34.197.44.143:8002/mcp",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json, text/event-stream"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"notify_delivery_delay\",\n  \"params\": {\n    \"route_id\": \"={{ $input.first().json.route_id }}\",\n    \"truck_id\": \"={{ $input.first().json.truck_id }}\",\n    \"chosen_option\": \"{{ $input.first().json.chosen_option }}\"\n  },\n  \"id\": \"req-retail-1\"\n}\n",
+        "options": {
+          "allowUnauthorizedCerts": false,
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        }
+      },
+      "name": "Retail MCP Client1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -1440,
+        -192
+      ],
+      "id": "baf3477d-61bf-461f-aa8d-a2eb2b9c060e"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "pepsico-route-execute.app.n8n.cloud",
+            "user-agent": "curl/8.7.1",
+            "content-length": "191",
+            "accept": "*/*",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "108.52.186.63",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "US",
+            "cf-ray": "98b09771809f4f3a-EWR",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "x-forwarded-for": "108.52.186.63, 104.23.187.130",
+            "x-forwarded-host": "pepsico-route-execute.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-29-677bf4754f-jwb4f",
+            "x-is-trusted": "yes",
+            "x-real-ip": "108.52.186.63"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "route_id": "741379",
+            "truck_id": "39531",
+            "chosen_option": {
+              "option_id": "opt-3",
+              "route_number": 8,
+              "distance_miles": 78,
+              "eta_minutes": 195
+            }
+          },
+          "webhookUrl": "https://pepsico-route-execute.app.n8n.cloud/webhook/pepsico-routing",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Route Coordinator ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Route Coordinator ": {
+      "main": [
+        [
+          {
+            "node": "Logistics MCP Client1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AWS Bedrock Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Route Coordinator ",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Logistics MCP Client": {
+      "ai_tool": [
+        []
+      ]
+    },
+    "ServiceNow MCP Client": {
+      "ai_tool": [
+        []
+      ]
+    },
+    "Retail MCP Client": {
+      "ai_tool": [
+        []
+      ]
+    },
+    "Logistics MCP Client1": {
+      "main": [
+        [
+          {
+            "node": "Retail MCP Client1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retail MCP Client1": {
+      "main": [
+        [
+          {
+            "node": "ServiceNow MCP Client1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "72ee7036-be9e-43d5-9ea5-a74c26989af3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "329762a67c80514eda08e3420de36645d3c90ae6a5471af611d4e7d8b9fa6a30"
+  },
+  "id": "VN8OFFE5zC4a5O9e",
+  "tags": []
+}
