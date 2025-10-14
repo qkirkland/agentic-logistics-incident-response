@@ -138,8 +138,7 @@ The n8n AI agent receives webhook payloads containing routing decisions (route_i
 ---
 
 ## Architecture Diagram
-<img width="704" height="900" alt="Screen Shot 2025-10-07 at 11 51 14 PM" src="https://github.com/user-attachments/assets/71c4d45b-fdad-470f-9a85-e582db120501" />
-<img width="711" height="614" alt="Screen Shot 2025-10-07 at 11 52 14 PM" src="https://github.com/user-attachments/assets/17b3ec09-e102-4061-88fb-e3be82b9df74" />
+<img width="1678" height="1250" alt="Diagram" src="https://github.com/user-attachments/assets/c47245c0-e463-42f0-bc27-64931878b7c4" />
 
 
 
